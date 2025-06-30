@@ -1,0 +1,14 @@
+services:
+  kds_mysql:
+    image: mysql:latest
+    container_name: kds_mysql
+    ports:
+      - 127.0.0.1:3316:3306
+    volumes:
+      - kds_mysql_data:/var/lib/mysql
+    env_file:
+      - .env
+
+volumes:
+  kds_mysql_data:
+

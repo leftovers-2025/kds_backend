@@ -1,0 +1,4 @@
+development:
+  dialect: mysql
+  dir: migrations
+  datasource: "myuser:mypassw@tcp(localhost:3316)/kds?parseTime=true"

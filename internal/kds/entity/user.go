@@ -20,13 +20,17 @@ var (
 type User struct {
 	id        uuid.UUID
 	name      string
-	email     string
+	email     Email
 	google_id string
 	createdAt time.Time
 	updatedAt time.Time
 }
 
 func NewUser(id uuid.UUID, name, email, google_id string, createdAt, updatedAt time.Time) (*User, error) {
+	mail, err := NewEmail(email)
+	if err != nil {
+		return nil, err
+	}
 	if len(name) < MIN_USER_NAME_LENGTH || len(name) > MAX_USER_NAME_LENGTH {
 		return nil, ErrInvalidUserNameLength
 	}
@@ -36,9 +40,33 @@ func NewUser(id uuid.UUID, name, email, google_id string, createdAt, updatedAt t
 	return &User{
 		id:        id,
 		name:      name,
-		email:     email,
+		email:     mail,
 		google_id: google_id,
 		createdAt: createdAt,
 		updatedAt: updatedAt,
 	}, nil
+}
+
+func (u *User) Id() uuid.UUID {
+	return u.id
+}
+
+func (u *User) GoogleId() string {
+	return u.google_id
+}
+
+func (u *User) Name() string {
+	return u.name
+}
+
+func (u *User) Email() Email {
+	return u.email
+}
+
+func (u *User) CreatedAt() time.Time {
+	return u.createdAt
+}
+
+func (u *User) UpdatedAt() time.Time {
+	return u.updatedAt
 }

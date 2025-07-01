@@ -1,5 +1,12 @@
 package entity
 
+import "errors"
+
+var (
+	ErrGoogleUserIdRequired   = errors.New("GoogleUser 'id' is required")
+	ErrGoogleUserNameRequired = errors.New("GoogleUser 'name' is required")
+)
+
 type GoogleUser struct {
 	id    string
 	name  string
@@ -7,6 +14,12 @@ type GoogleUser struct {
 }
 
 func NewGoogleUser(id, name, email string) (*GoogleUser, error) {
+	if id == "" {
+		return nil, ErrGoogleUserIdRequired
+	}
+	if name == "" {
+		return nil, ErrGoogleUserNameRequired
+	}
 	mail, err := NewEmail(email)
 	if err != nil {
 		return nil, err

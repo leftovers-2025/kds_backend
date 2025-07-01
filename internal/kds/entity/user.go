@@ -13,8 +13,10 @@ const (
 )
 
 var (
-	ErrInvalidUserNameLength = errors.New("invalid username length")
-	ErrUserTimeZero          = errors.New("the user time is zero")
+	ErrUserNameRequired      = errors.New("User 'name' is required")
+	ErrUserGoogleIdRequired  = errors.New("User 'googleId' is required")
+	ErrInvalidUserNameLength = errors.New("invalid User 'name' length")
+	ErrUserTimeZero          = errors.New("the time related User is zero")
 )
 
 type User struct {
@@ -26,7 +28,13 @@ type User struct {
 	updatedAt time.Time
 }
 
-func NewUser(id uuid.UUID, name, email, google_id string, createdAt, updatedAt time.Time) (*User, error) {
+func NewUser(id uuid.UUID, name, email, googleId string, createdAt, updatedAt time.Time) (*User, error) {
+	if name == "" {
+		return nil, ErrUserNameRequired
+	}
+	if googleId == "" {
+		return nil, ErrUserGoogleIdRequired
+	}
 	mail, err := NewEmail(email)
 	if err != nil {
 		return nil, err
@@ -41,7 +49,7 @@ func NewUser(id uuid.UUID, name, email, google_id string, createdAt, updatedAt t
 		id:        id,
 		name:      name,
 		email:     mail,
-		google_id: google_id,
+		google_id: googleId,
 		createdAt: createdAt,
 		updatedAt: updatedAt,
 	}, nil

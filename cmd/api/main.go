@@ -1,15 +1,27 @@
 package main
 
 import (
+	"os"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
+const (
+	KDS_HTTP_PORT_DEFAULT = "8630"
+)
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		panic(".env is not found")
+		panic(".env was not found")
+	}
+
+	// ポート設定
+	port, ok := os.LookupEnv("KDS_HTTP_PORT")
+	if !ok {
+		port = KDS_HTTP_PORT_DEFAULT
 	}
 
 	e := echo.New()
@@ -23,5 +35,5 @@ func main() {
 	// google oauth
 	e.GET("/oauth/google/redirect", handlerSets.GoogleHandler.Redirect)
 
-	e.Logger.Fatal(e.Start(":8630"))
+	e.Logger.Fatal(e.Start(":" + port))
 }

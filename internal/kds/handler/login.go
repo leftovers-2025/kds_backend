@@ -23,9 +23,9 @@ func NewGoogleHandler(googleCmdService *service.GoogleCommandService) *GoogleHan
 }
 
 type GoogleLoginResponse struct {
-	Id    string
-	Name  string
-	Email string
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 // Google OAuth認証時リダイレクト先

@@ -17,6 +17,10 @@ func main() {
 
 	handlerSets := InitHandlerSets()
 
+	// error handling
+	e.HTTPErrorHandler = handlerSets.ErrorHandler.HandleError
+
+	// google oauth
 	e.GET("/oauth/google/redirect", handlerSets.GoogleHandler.Redirect)
 
 	e.Logger.Fatal(e.Start(":8630"))

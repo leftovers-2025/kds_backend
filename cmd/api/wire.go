@@ -29,10 +29,12 @@ var serviceSet = wire.NewSet(
 
 var handlerSet = wire.NewSet(
 	handler.NewGoogleHandler,
+	handler.NewErrorHandler,
 )
 
 type HandlerSets struct {
 	GoogleHandler *handler.GoogleHandler
+	ErrorHandler  *handler.ErrorHandler
 }
 
 func InitHandlerSets() *HandlerSets {

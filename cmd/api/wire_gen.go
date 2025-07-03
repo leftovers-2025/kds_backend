@@ -25,8 +25,10 @@ func InitHandlerSets() *HandlerSets {
 	googleRepository := api.NewApiGoogleRepository(googleApiClient)
 	googleCommandService := service.NewGoogleCommandService(userCommandService, userRepository, googleRepository)
 	googleHandler := handler.NewGoogleHandler(googleCommandService)
+	errorHandler := handler.NewErrorHandler()
 	handlerSets := &HandlerSets{
 		GoogleHandler: googleHandler,
+		ErrorHandler:  errorHandler,
 	}
 	return handlerSets
 }
@@ -39,8 +41,9 @@ var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRe
 
 var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService)
 
-var handlerSet = wire.NewSet(handler.NewGoogleHandler)
+var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler)
 
 type HandlerSets struct {
 	GoogleHandler *handler.GoogleHandler
+	ErrorHandler  *handler.ErrorHandler
 }

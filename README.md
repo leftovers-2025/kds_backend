@@ -27,3 +27,10 @@ response_type=code&
 redirect_uri=http%3A//localhost:8630/oauth/google/redirect&
 client_id=532447272997-9dfmmst462j9okkg893nmidhhi6v94mn.apps.googleusercontent.com
 ```
+
+.env.exampleを.envにして
+
+```sh
+# コマンド
+npm run dev
+```

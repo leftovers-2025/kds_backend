@@ -72,7 +72,7 @@ func (r *MySqlUserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 			JOIN google_ids
 			ON users.id = google_ids.user_id
 		WHERE
-		users.id = :id
+			users.id = :id
 	`
 	model := UserAndGoogleIdDBModel{}
 	row, err := r.db.NamedQuery(sql, map[string]any{

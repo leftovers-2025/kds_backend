@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/leftovers-2025/kds_backend/internal/kds/common"
 	"github.com/leftovers-2025/kds_backend/internal/kds/entity"
 	"github.com/leftovers-2025/kds_backend/internal/kds/port"
 )
@@ -39,7 +38,7 @@ func (s *UserCommandService) CreateUser(cmd UserCreateCommandInput) (*UserCreate
 	// id生成
 	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, common.NewInternalError(err)
+		return nil, err
 	}
 	// ユーザー作成
 	user, err := entity.NewUser(
@@ -51,12 +50,12 @@ func (s *UserCommandService) CreateUser(cmd UserCreateCommandInput) (*UserCreate
 		time.Now(),
 	)
 	if err != nil {
-		return nil, common.NewInternalError(err)
+		return nil, err
 	}
 	// リポジトリで作成
 	err = s.userRepository.Create(user)
 	if err != nil {
-		return nil, common.NewInternalError(err)
+		return nil, err
 	}
 	return &UserCreateCommandOutput{
 		Id:    user.Id(),

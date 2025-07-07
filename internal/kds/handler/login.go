@@ -23,9 +23,11 @@ func NewGoogleHandler(googleCmdService *service.GoogleCommandService) *GoogleHan
 }
 
 type GoogleLoginResponse struct {
-	Id    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	Id           string `json:"id"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 // Google OAuth認証時リダイレクト先
@@ -40,8 +42,10 @@ func (h *GoogleHandler) Redirect(ctx echo.Context) error {
 		return err
 	}
 	return ctx.JSON(http.StatusOK, GoogleLoginResponse{
-		Id:    output.Id.String(),
-		Name:  output.Name,
-		Email: output.Email,
+		Id:           output.Id.String(),
+		Name:         output.Name,
+		Email:        output.Email,
+		AccessToken:  output.AccessToken,
+		RefreshToken: output.RefreshToken,
 	})
 }

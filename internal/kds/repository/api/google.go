@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -80,8 +79,6 @@ func (r *ApiGoogleRepository) CodeAuthorization(code string) (*entity.GoogleUser
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("oauth response unmarshal")
 
 	// ユーザー情報取得リクエスト作成
 	req, err = r.createUserRequest(oauthResponse.AccessToken)

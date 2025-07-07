@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	migrate "github.com/rubenv/sql-migrate"
 )
 
 // MySQLに接続する
@@ -14,7 +15,25 @@ func GetMySqlConnection() *sqlx.DB {
 	if err != nil {
 		panic("failed to connect MySQL database: " + err.Error())
 	}
+	mysqlMigration(db)
 	return db
+}
+
+func mysqlMigration(db *sqlx.DB) error {
+	doMigrate, ok := os.LookupEnv("KDS_RUNTIME_MIGRATION")
+	if !ok || doMigrate != "1" {
+		fmt.Println("migration skipped. runtime migration is disabled")
+		return nil
+	}
+	migration := &migrate.FileMigrationSource{
+		Dir: "migrations",
+	}
+	n, err := migrate.Exec(db.DB, "mysql", migration, migrate.Up)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Applied %d migrations to mysql\n", n)
+	return nil
 }
 
 // MySQLのDSNを環境変数から取得する

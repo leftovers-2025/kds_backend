@@ -1,0 +1,17 @@
+services:
+  kds_test_mysql:
+    image: mysql:latest
+    container_name: kds_test_mysql
+    ports:
+      - 127.0.0.1:3326:3306
+    env_file:
+      - .env.test
+  kds_test_redis:
+    image: redis:7.2
+    restart: always
+    container_name: kds_test_redis
+    ports:
+      - "127.0.0.1:6399:6379"
+    command: redis-server --save 60 1 --loglevel warning --requirepass $REDIS_PASSWORD
+    env_file:
+      - .env.test

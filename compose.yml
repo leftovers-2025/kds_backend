@@ -8,7 +8,43 @@ services:
       - kds_mysql_data:/var/lib/mysql
     env_file:
       - .env
+  kds_phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: kds_phpmyadmin
+    depends_on:
+      kds_mysql:
+        condition: service_started
+    ports:
+      - 127.0.0.1:8088:80
+    environment:
+      - PMA_HOST=kds_mysql
+    env_file:
+      - .env
+  kds_redis:
+    image: redis:7.2
+    restart: always
+    container_name: kds_redis
+    ports:
+      - "127.0.0.1:6389:6379"
+    command: redis-server --save 60 1 --loglevel warning --requirepass $REDIS_PASSWORD
+    volumes:
+      - kds_redis_data:/data
+    env_file:
+      - .env
+  kds_redis_insight:
+    image: redis/redisinsight:latest
+    container_name: kds_redis_insight
+    depends_on:
+      kds_redis:
+        condition: service_started
+    ports:
+      - 127.0.0.1:8089:5540
+    environment:
+      - RI_REDIS_HOST=kds_redis
+    env_file:
+      - .env
 
 volumes:
   kds_mysql_data:
+  kds_redis_data:
 

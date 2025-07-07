@@ -86,12 +86,6 @@ func (r *MySqlUserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 		return nil, common.NewNotFoundError(fmt.Errorf("user id %s not found", id.String()))
 	}
 	// モデルにバインド
-	columns, err := row.Columns()
-	if err != nil {
-		fmt.Printf("columns err: %s\n", err.Error())
-	} else {
-		fmt.Println(columns)
-	}
 	err = row.StructScan(&model)
 	if err != nil {
 		return nil, err

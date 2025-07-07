@@ -12,6 +12,7 @@ import (
 	"github.com/leftovers-2025/kds_backend/internal/kds/handler"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/api"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/mysql"
+	"github.com/leftovers-2025/kds_backend/internal/kds/repository/redis"
 	"github.com/leftovers-2025/kds_backend/internal/kds/service"
 )
 
@@ -21,29 +22,40 @@ func InitHandlerSets() *HandlerSets {
 	db := datasource.GetMySqlConnection()
 	userRepository := mysql.NewMySqlUserRepository(db)
 	userCommandService := service.NewUserCommandService(userRepository)
+	client := datasource.GetRedisClient()
+	tokenRepository := redis.NewRedisTokenRepository(client)
+	authCommandService := service.NewAuthCommandService(userRepository, tokenRepository)
 	googleApiClient := datasource.NewGoogleApiClient()
 	googleRepository := api.NewApiGoogleRepository(googleApiClient)
-	googleCommandService := service.NewGoogleCommandService(userCommandService, userRepository, googleRepository)
+	googleCommandService := service.NewGoogleCommandService(userCommandService, authCommandService, userRepository, googleRepository)
 	googleHandler := handler.NewGoogleHandler(googleCommandService)
 	errorHandler := handler.NewErrorHandler()
+	authQueryService := service.NewAuthQueryService()
+	authHandler := handler.NewAuthHandler(authQueryService)
+	userQueryService := service.NewUserQueryService(userRepository)
+	userHandler := handler.NewUserHandler(userQueryService)
 	handlerSets := &HandlerSets{
 		GoogleHandler: googleHandler,
 		ErrorHandler:  errorHandler,
+		AuthHandler:   authHandler,
+		UserHandler:   userHandler,
 	}
 	return handlerSets
 }
 
 // wire.go:
 
-var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMySqlConnection)
+var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMySqlConnection, datasource.GetRedisClient)
 
-var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository)
+var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository)
 
-var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService)
+var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService)
 
-var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler)
+var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler)
 
 type HandlerSets struct {
 	GoogleHandler *handler.GoogleHandler
 	ErrorHandler  *handler.ErrorHandler
+	AuthHandler   *handler.AuthHandler
+	UserHandler   *handler.UserHandler
 }

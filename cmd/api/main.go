@@ -28,12 +28,16 @@ func main() {
 	e.Use(middleware.Logger())
 
 	handlerSets := InitHandlerSets()
+	auth := e.Group("", handlerSets.AuthHandler.JwtAuthorization)
 
 	// error handling
 	e.HTTPErrorHandler = handlerSets.ErrorHandler.HandleError
 
 	// google oauth
 	e.GET("/oauth/google/redirect", handlerSets.GoogleHandler.Redirect)
+
+	// user
+	auth.GET("/users/@me", handlerSets.UserHandler.Me)
 
 	e.Logger.Fatal(e.Start(":" + port))
 }

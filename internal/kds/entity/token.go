@@ -158,7 +158,7 @@ func GenerateRefreshToken(sub uuid.UUID, expireIn time.Time) (*RefreshToken, err
 func RefreshTokenFromToken(refreshToken string) (*RefreshToken, error) {
 	claims := jwt.MapClaims{}
 	// トークンデコード
-	_, err := jwt.ParseWithClaims(refreshToken, claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(refreshToken, claims, func(t *jwt.Token) (any, error) {
 		return getJwtSecretKey(), nil
 	})
 	if err != nil {

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -44,7 +45,7 @@ func GenerateAccessToken(sub uuid.UUID, expireIn time.Time) (*AccessToken, error
 	}
 	claims := jwt.MapClaims{
 		"sub": sub.String(),
-		"exp": expireIn,
+		"exp": expireIn.Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedStr, err := token.SignedString(getJwtSecretKey())
@@ -62,10 +63,11 @@ func GenerateAccessToken(sub uuid.UUID, expireIn time.Time) (*AccessToken, error
 func AccessTokenFromToken(accessToken string) (*AccessToken, error) {
 	claims := jwt.MapClaims{}
 	// トークンデコード
-	_, err := jwt.ParseWithClaims(accessToken, claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(accessToken, claims, func(t *jwt.Token) (any, error) {
 		return getJwtSecretKey(), nil
 	})
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 	// sub取得
@@ -137,7 +139,7 @@ func GenerateRefreshToken(sub uuid.UUID, expireIn time.Time) (*RefreshToken, err
 	claims := jwt.MapClaims{
 		"sub": sub.String(),
 		"tid": tokenId.String(),
-		"exp": expireIn,
+		"exp": expireIn.Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedStr, err := token.SignedString(getJwtSecretKey())

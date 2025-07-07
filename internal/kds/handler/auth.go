@@ -40,6 +40,7 @@ func (h *AuthHandler) JwtAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 		// prefix確認
 		if !strings.HasPrefix(authHeader, AUTHORIZATION_HEADER_PREFIX) {
 			return ctx.JSON(http.StatusUnauthorized, ErrorResponse{
+				Code:    http.StatusUnauthorized,
 				Message: "Authorization header is required",
 			})
 		}

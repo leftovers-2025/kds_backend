@@ -10,14 +10,16 @@ CREATE TABLE `tag_notifications`(
     `user_id` BINARY(16) NOT NULL COMMENT 'ユーザーID',
     `tag_id` BINARY(16) NOT NULL COMMENT 'タグID',
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
-    FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`)
+    FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`),
+    UNIQUE (`user_id`, `tag_id`)
 );
 
 CREATE TABLE `location_notifications`(
     `user_id` BINARY(16) NOT NULL COMMENT 'ユーザーID',
     `location_id` BINARY(16) NOT NULL COMMENT 'ロケーションID',
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
-    FOREIGN KEY (`location_id`) REFERENCES `locations`(`id`)
+    FOREIGN KEY (`location_id`) REFERENCES `locations`(`id`),
+    UNIQUE (`user_id`, `location_id`)
 );
 
 -- +migrate Down

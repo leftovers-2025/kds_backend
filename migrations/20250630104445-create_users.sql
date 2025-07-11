@@ -10,7 +10,7 @@ CREATE TABLE `users`(
 
 CREATE TABLE `google_ids`(
     `user_id` BINARY(16) PRIMARY KEY COMMENT 'ユーザーID',
-    `google_id` VARCHAR(255) NOT NULL COMMENT 'GoogleユーザーID',
+    `google_id` VARCHAR(255) NOT NULL UNIQUE COMMENT 'GoogleユーザーID',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 

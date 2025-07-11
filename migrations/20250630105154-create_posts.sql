@@ -12,14 +12,15 @@ CREATE TABLE `posts`(
 );
 
 CREATE TABLE `post_tags`(
-    `post_id` BINARY(16) PRIMARY KEY COMMENT '投稿ID',
+    `post_id` BINARY(16) NOT NULL COMMENT '投稿ID',
     `tag_id` BINARY(16) NOT NULL COMMENT 'タグID',
     FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`),
-    FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`)
+    FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`),
+    UNIQUE (`post_id`, `tag_id`)
 );
 
 CREATE TABLE `post_images`(
-    `post_id` BINARY(16) PRIMARY KEY COMMENT '投稿ID',
+    `post_id` BINARY(16) NOT NULL COMMENT '投稿ID',
     `image_url` VARCHAR(255) NOT NULL COMMENT 'タグID',
     FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`)
 );

@@ -1,6 +1,7 @@
 package datasource
 
 import (
+	"context"
 	"os"
 
 	"github.com/minio/minio-go/v7"
@@ -22,7 +23,27 @@ func GetMinIOClient() *minio.Client {
 	if err != nil {
 		panic("failed to get minio client.\n" + err.Error())
 	}
+	err = MigrateMinIO(client)
+	if err != nil {
+		panic("MinIO Migration Error: " + err.Error())
+	}
 	return client
+}
+
+func MigrateMinIO(client *minio.Client) error {
+	imageBucketName := "images"
+	exists, err := client.BucketExists(context.Background(), imageBucketName)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+	err = client.MakeBucket(context.Background(), imageBucketName, minio.MakeBucketOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getMinioEndpoint() string {

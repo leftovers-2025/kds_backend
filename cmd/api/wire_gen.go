@@ -13,6 +13,7 @@ import (
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/api"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/mysql"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/redis"
+	"github.com/leftovers-2025/kds_backend/internal/kds/repository/s3"
 	"github.com/leftovers-2025/kds_backend/internal/kds/service"
 )
 
@@ -34,28 +35,47 @@ func InitHandlerSets() *HandlerSets {
 	authHandler := handler.NewAuthHandler(authQueryService)
 	userQueryService := service.NewUserQueryService(userRepository)
 	userHandler := handler.NewUserHandler(userQueryService)
+	tagRepository := mysql.NewMySqlTagRepository(db)
+	tagCommandService := service.NewTagCommandService(tagRepository)
+	tagQueryService := service.NewTagQueryService(tagRepository)
+	tagHandler := handler.NewTagHandler(tagCommandService, tagQueryService)
+	locationRepository := mysql.NewMySqlLocationRepository(db)
+	locationCommandService := service.NewLocationCommandService(locationRepository)
+	locationQueryService := service.NewLocationQueryService(locationRepository)
+	locationHandler := handler.NewLocationHandler(locationCommandService, locationQueryService)
+	minioClient := datasource.GetMinIOClient()
+	s3Repository := s3.NewS3Repository(minioClient)
+	postRepository := mysql.NewMySqlPostRepository(db, s3Repository)
+	postCommandService := service.NewPostCommandService(postRepository)
+	postHandler := handler.NewPostHandler(postCommandService)
 	handlerSets := &HandlerSets{
-		GoogleHandler: googleHandler,
-		ErrorHandler:  errorHandler,
-		AuthHandler:   authHandler,
-		UserHandler:   userHandler,
+		GoogleHandler:   googleHandler,
+		ErrorHandler:    errorHandler,
+		AuthHandler:     authHandler,
+		UserHandler:     userHandler,
+		TagHandler:      tagHandler,
+		LocationHandler: locationHandler,
+		PostHandler:     postHandler,
 	}
 	return handlerSets
 }
 
 // wire.go:
 
-var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMySqlConnection, datasource.GetRedisClient)
+var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMySqlConnection, datasource.GetRedisClient, datasource.GetMinIOClient)
 
-var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository)
+var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository, mysql.NewMySqlTagRepository, mysql.NewMySqlLocationRepository, mysql.NewMySqlPostRepository, s3.NewS3Repository)
 
-var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService)
+var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostCommandService)
 
-var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler)
+var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler, handler.NewTagHandler, handler.NewLocationHandler, handler.NewPostHandler)
 
 type HandlerSets struct {
-	GoogleHandler *handler.GoogleHandler
-	ErrorHandler  *handler.ErrorHandler
-	AuthHandler   *handler.AuthHandler
-	UserHandler   *handler.UserHandler
+	GoogleHandler   *handler.GoogleHandler
+	ErrorHandler    *handler.ErrorHandler
+	AuthHandler     *handler.AuthHandler
+	UserHandler     *handler.UserHandler
+	TagHandler      *handler.TagHandler
+	LocationHandler *handler.LocationHandler
+	PostHandler     *handler.PostHandler
 }

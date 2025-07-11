@@ -35,17 +35,27 @@ type UserCreateCommandOutput struct {
 
 // ユーザーを新規作成する
 func (s *UserCommandService) CreateUser(cmd UserCreateCommandInput) (*UserCreateCommandOutput, error) {
+	email, err := entity.NewEmail(cmd.Email)
+	if err != nil {
+		return nil, err
+	}
 	// id生成
 	id, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
+	// ロール設定
+	userRole := entity.ROLE_STUDENT
+	if email.IsTeacher() {
+		userRole = entity.ROLE_TEACHER
+	}
 	// ユーザー作成
 	user, err := entity.NewUser(
 		id,
 		cmd.Name,
-		cmd.Email,
 		cmd.GoogleId,
+		email,
+		userRole,
 		time.Now(),
 		time.Now(),
 	)

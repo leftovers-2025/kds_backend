@@ -16,7 +16,7 @@ CREATE TABLE `google_ids`(
 
 CREATE TABLE `roles`(
     `user_id` BINARY(16) PRIMARY KEY COMMENT 'ユーザーID',
-    `role` SMALLINT NOT NULL COMMENT 'ロール',
+    `role` VARCHAR(255) NOT NULL COMMENT 'ロール',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新日時',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

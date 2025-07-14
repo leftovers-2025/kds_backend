@@ -10,13 +10,13 @@ CREATE TABLE `users`(
 
 CREATE TABLE `google_ids`(
     `user_id` BINARY(16) PRIMARY KEY COMMENT 'ユーザーID',
-    `google_id` VARCHAR(255) NOT NULL COMMENT 'GoogleユーザーID',
+    `google_id` VARCHAR(255) NOT NULL UNIQUE COMMENT 'GoogleユーザーID',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE `roles`(
     `user_id` BINARY(16) PRIMARY KEY COMMENT 'ユーザーID',
-    `role` SMALLINT NOT NULL COMMENT 'ロール',
+    `role` VARCHAR(255) NOT NULL COMMENT 'ロール',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新日時',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );

@@ -43,8 +43,20 @@ services:
       - RI_REDIS_HOST=kds_redis
     env_file:
       - .env
+  kds_minio:
+    image: quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z-cpuv1
+    container_name: kds_minio
+    ports:
+      - "9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - kds_minio_data:/data
+    env_file:
+      - .env
+    command: "server /data --console-address \":9001\""
 
 volumes:
   kds_mysql_data:
   kds_redis_data:
+  kds_minio_data:
 

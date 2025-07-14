@@ -26,6 +26,7 @@ type UserResponse struct {
 	Id        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
+	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -46,6 +47,7 @@ func (h *UserHandler) Me(ctx echo.Context) error {
 		Id:        userOutput.Id,
 		Name:      userOutput.Name,
 		Email:     userOutput.Email,
+		Role:      userOutput.Role,
 		CreatedAt: userOutput.CreatedAt,
 		UpdatedAt: userOutput.UpdatedAt,
 	})

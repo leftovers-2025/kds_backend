@@ -24,18 +24,20 @@ func NewMySqlUserRepository(db *sqlx.DB) port.UserRepository {
 	}
 }
 
-type UserAndGoogleIdDBModel struct {
+type UserAndGoogleIdAndRoleModel struct {
 	Id        []byte    `db:"id"`
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	GoogleId  string    `db:"google_id"`
+	Role      string    `db:"role"`
 }
 
 // ユーザーを新規作成する
 func (r *MySqlUserRepository) Create(user *entity.User) error {
 	return RunInTx(r.db, func(tx *sqlx.Tx) error {
+		// ユーザー挿入
 		sql := `
 			INSERT INTO users(id, name, email, created_at, updated_at)
 			VALUES(:id, :name, :email, :createdAt, :updatedAt)
@@ -51,6 +53,7 @@ func (r *MySqlUserRepository) Create(user *entity.User) error {
 		if err != nil {
 			return err
 		}
+		// GoogleId挿入
 		sql = `
 			INSERT INTO google_ids(user_id, google_id)
 			VALUES(:userId, :googleId)
@@ -58,6 +61,19 @@ func (r *MySqlUserRepository) Create(user *entity.User) error {
 		_, err = tx.NamedExec(sql, map[string]any{
 			"userId":   userId[:],
 			"googleId": user.GoogleId(),
+		})
+		if err != nil {
+			return err
+		}
+		// ロール挿入
+		sql = `
+			INSERT INTO roles(user_id, role, updated_at)
+			VALUES(:userId, :role, :updatedAt)
+		`
+		_, err = tx.NamedExec(sql, map[string]any{
+			"userId":    userId[:],
+			"role":      user.Role().String(),
+			"updatedAt": user.UpdatedAt(),
 		})
 		return err
 	})
@@ -67,14 +83,16 @@ func (r *MySqlUserRepository) Create(user *entity.User) error {
 func (r *MySqlUserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 	sql := `
 		SELECT 
-			users.id, users.name, users.email, users.created_at, users.updated_at, google_ids.google_id
+			users.id, users.name, users.email, users.created_at, users.updated_at, google_ids.google_id, roles.role
 		FROM users
 			JOIN google_ids
-			ON users.id = google_ids.user_id
+				ON users.id = google_ids.user_id
+			JOIN roles
+				ON users.id = roles.user_id
 		WHERE
 			users.id = :id
 	`
-	model := UserAndGoogleIdDBModel{}
+	model := UserAndGoogleIdAndRoleModel{}
 	row, err := r.db.NamedQuery(sql, map[string]any{
 		"id": id[:],
 	})
@@ -91,21 +109,23 @@ func (r *MySqlUserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 		return nil, err
 	}
 	// モデルをユーザーに変換
-	return userAndGoogleIdModelToUser(&model)
+	return modelToUser(&model)
 }
 
 // GoogleIdからユーザーを検索する
 func (r *MySqlUserRepository) FindByGoogleId(googleId string) (*entity.User, error) {
 	sql := `
 		SELECT 
-			users.id, users.name, users.email, users.created_at, users.updated_at, google_ids.google_id
+			users.id, users.name, users.email, users.created_at, users.updated_at, google_ids.google_id, roles.role
 		FROM users
 			JOIN google_ids
-			ON users.id = google_ids.user_id
+				ON users.id = google_ids.user_id
+			JOIN roles
+				ON users.id = roles.user_id
 		WHERE
 			google_ids.google_id = :googleId
 	`
-	model := UserAndGoogleIdDBModel{}
+	model := UserAndGoogleIdAndRoleModel{}
 	row, err := r.db.NamedQuery(sql, map[string]any{
 		"googleId": googleId,
 	})
@@ -122,20 +142,52 @@ func (r *MySqlUserRepository) FindByGoogleId(googleId string) (*entity.User, err
 		return nil, err
 	}
 	// モデルをユーザーに変換
-	return userAndGoogleIdModelToUser(&model)
+	return modelToUser(&model)
+}
+
+func getUserInTx(tx *sqlx.Tx, userId uuid.UUID) (*entity.User, error) {
+	query := `
+		SELECT 
+			users.id, users.email, users.name, users.created_at, users.updated_at,
+			google_ids.google_id,
+			roles.role
+		FROM users
+			JOIN google_ids
+				ON google_ids.user_id = users.id
+			JOIN roles
+				ON roles.user_id = users.id
+		WHERE
+			users.id = ?
+	`
+	model := UserAndGoogleIdAndRoleModel{}
+	err := tx.Get(&model, query, userId[:])
+	if err != nil {
+		return nil, err
+	}
+	user, err := modelToUser(&model)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 // UserAndGoogleIdDBModelをUserに変換する
-func userAndGoogleIdModelToUser(model *UserAndGoogleIdDBModel) (*entity.User, error) {
+func modelToUser(model *UserAndGoogleIdAndRoleModel) (*entity.User, error) {
 	id, err := uuid.FromBytes(model.Id)
 	if err != nil {
 		return nil, err
 	}
+	email, err := entity.NewEmail(model.Email)
+	if err != nil {
+		return nil, err
+	}
+	role := entity.RoleFromString(model.Role)
 	return entity.NewUser(
 		id,
 		model.Name,
-		model.Email,
 		model.GoogleId,
+		email,
+		role,
 		model.CreatedAt,
 		model.UpdatedAt,
 	)

@@ -13,6 +13,7 @@ const (
 )
 
 func main() {
+	// env読み込み
 	err := godotenv.Load()
 	if err != nil {
 		panic(".env was not found")
@@ -26,9 +27,10 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
+	api := e.Group("/api")
 
 	handlerSets := InitHandlerSets()
-	auth := e.Group("", handlerSets.AuthHandler.JwtAuthorization)
+	auth := api.Group("", handlerSets.AuthHandler.JwtAuthorization)
 
 	// error handling
 	e.HTTPErrorHandler = handlerSets.ErrorHandler.HandleError
@@ -38,6 +40,17 @@ func main() {
 
 	// user
 	auth.GET("/users/@me", handlerSets.UserHandler.Me)
+
+	// tag
+	api.GET("/tags", handlerSets.TagHandler.GetAll)
+	auth.POST("/tags", handlerSets.TagHandler.Create)
+
+	// location
+	api.GET("/locations", handlerSets.LocationHandler.GetAll)
+	auth.POST("/locations", handlerSets.LocationHandler.Create)
+
+	// post
+	auth.POST("/posts", handlerSets.PostHandler.Create)
 
 	e.Logger.Fatal(e.Start(":" + port))
 }

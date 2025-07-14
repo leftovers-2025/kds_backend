@@ -1,9 +1,6 @@
 package service
 
 import (
-	"database/sql"
-	"errors"
-
 	"github.com/google/uuid"
 	"github.com/leftovers-2025/kds_backend/internal/kds/port"
 )
@@ -62,10 +59,6 @@ func (s *GoogleCommandService) OauthLogin(input GoogleOauthLoginCommandInput) (*
 	}
 	// GoogleのIdからユーザー取得
 	user, err := s.userRepository.FindByGoogleId(googleUser.Id())
-	// エラー確認
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	}
 	// 既存ユーザー確認
 	if err != nil {
 		// 存在しない場合ユーザー作成

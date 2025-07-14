@@ -24,6 +24,7 @@ type UserQueryOutput struct {
 	Id        uuid.UUID
 	Name      string
 	Email     string
+	Role      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -38,6 +39,7 @@ func (s *UserQueryService) GetUser(userId uuid.UUID) (*UserQueryOutput, error) {
 		Id:        user.Id(),
 		Name:      user.Name(),
 		Email:     user.Email().String(),
+		Role:      user.Role().String(),
 		CreatedAt: user.CreatedAt(),
 		UpdatedAt: user.UpdatedAt(),
 	}, nil

@@ -41,6 +41,7 @@ var serviceSet = wire.NewSet(
 	service.NewTagCommandService,
 	service.NewLocationQueryService,
 	service.NewLocationCommandService,
+	service.NewPostQueryService,
 	service.NewPostCommandService,
 )
 

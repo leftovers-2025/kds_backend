@@ -50,6 +50,7 @@ func main() {
 	auth.POST("/locations", handlerSets.LocationHandler.Create)
 
 	// post
+	api.GET("/posts", handlerSets.PostHandler.Get)
 	auth.POST("/posts", handlerSets.PostHandler.Create)
 
 	e.Logger.Fatal(e.Start(":" + port))

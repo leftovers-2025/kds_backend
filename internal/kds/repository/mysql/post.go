@@ -109,7 +109,7 @@ func (r *MySqlPostRepository) Create(userId, locationId uuid.UUID, tagIds []uuid
 				}
 				// モデル作成
 				imageModel := ImageModel{
-					Name: uuid.NewString(),
+					Name: uuid.NewString() + ".jpg",
 					File: file,
 				}
 				// モデル一覧に追加

@@ -47,7 +47,8 @@ func InitHandlerSets() *HandlerSets {
 	s3Repository := s3.NewS3Repository(minioClient)
 	postRepository := mysql.NewMySqlPostRepository(db, s3Repository)
 	postCommandService := service.NewPostCommandService(postRepository)
-	postHandler := handler.NewPostHandler(postCommandService)
+	postQueryService := service.NewPostQueryService(postRepository)
+	postHandler := handler.NewPostHandler(postCommandService, postQueryService)
 	handlerSets := &HandlerSets{
 		GoogleHandler:   googleHandler,
 		ErrorHandler:    errorHandler,
@@ -66,7 +67,7 @@ var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMyS
 
 var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository, mysql.NewMySqlTagRepository, mysql.NewMySqlLocationRepository, mysql.NewMySqlPostRepository, s3.NewS3Repository)
 
-var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostCommandService)
+var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostQueryService, service.NewPostCommandService)
 
 var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler, handler.NewTagHandler, handler.NewLocationHandler, handler.NewPostHandler)
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -58,7 +57,6 @@ type TagCreateRequest struct {
 
 // タグを新規作成
 func (h *TagHandler) Create(ctx echo.Context) error {
-	fmt.Println("tag creation")
 	// ユーザーID取得
 	userId, err := getUserIdFromCtx(ctx)
 	if err != nil {

@@ -27,18 +27,140 @@ type PostModel struct {
 	UpdatedAt    time.Time      `db:"updated_at"`
 }
 
+// 条件付きで投稿を一覧取得
 func (r *MySqlPostRepository) FindWithFilter(queryWord, tag, location, order string, orderAsc bool, limit, page uint) ([]entity.Post, error) {
 	if queryWord == "" && tag == "" && location == "" && order == "" && !orderAsc {
 		return r.FindAll(limit, page)
 	} else {
-		return r.FindAll(limit, page)
-		// TODO
-		// return r.findWithFilter(queryWord, tag, location, order, orderAsc, limit, page)
+		return r.findWithFilter(queryWord, tag, location, order, orderAsc, limit, page)
 	}
 }
 
+// 条件付きで投稿を一覧取得
 func (r *MySqlPostRepository) findWithFilter(queryWord, tag, location, order string, orderAsc bool, limit, page uint) ([]entity.Post, error) {
-	return nil, nil
+	// ソート対象のカラム名を取得
+	orderColumn, err := r.toOrderColumn(order)
+	if err != nil {
+		return nil, err
+	}
+	// SQLにバインドするパラメーターリスト
+	params := []any{}
+	// SQL文
+	query := `
+		SELECT 
+			posts.id, user_id, posts.location_id, location_name, tag_id, tag_name, description, image_url, created_at, updated_at
+		FROM 
+			(
+				SELECT * FROM posts
+	`
+	// ロケーション検索がある場合
+	if location != "" || queryWord != "" {
+		// 検索クエリにロケーションを追加
+		query += `
+				JOIN (
+					SELECT locations.id AS l_id, locations.name AS location_name
+					FROM locations
+				) AS locations
+					ON locations.l_id = posts.location_id
+		`
+	}
+	// タグ検索がある場合
+	if tag != "" || queryWord != "" {
+		// 検索クエリにタグを追加
+		query += `LEFT JOIN (
+					SELECT post_id, tags.id AS tag_id, name AS tag_name
+					FROM post_tags
+					JOIN tags
+						ON post_tags.tag_id = tags.id
+				  ) AS post_tags 
+						ON posts.id = post_tags.post_id`
+	}
+	// 条件絞り込み
+	if tag != "" || location != "" || queryWord != "" {
+		query += " WHERE"
+	}
+	// フィルターとワード検索の両方を行う場合
+	if (tag != "" || location != "") && queryWord != "" {
+		query += " ("
+	}
+	// タグ絞り込み
+	if tag != "" {
+		query += " tag_name = ?"
+		params = append(params, tag)
+	}
+	// ロケーション絞り込み
+	if location != "" {
+		if len(params) > 0 {
+			query += " AND"
+		}
+		query += " location_name = ?"
+		params = append(params, location)
+	}
+	// ワード検索
+	if queryWord != "" {
+		// フィルター検索していた場合
+		if len(params) > 0 {
+			query += " ) OR"
+		}
+		query += `
+			posts.description LIKE ?
+			OR tag_name LIKE ?
+			OR location_name LIKE ?
+			`
+		params = append(params, "%"+queryWord+"%", queryWord+"%", queryWord+"%")
+	}
+	// ソートとページネーション
+	query += " ORDER BY " + orderColumn
+	if orderAsc {
+		query += " ASC"
+	} else {
+		query += " DESC"
+	}
+	query += ` LIMIT ? OFFSET ?`
+	params = append(params, limit, (page-1)*limit)
+	// 絞り込み終了
+	query += " ) AS posts"
+	// ロケーションを絞り込み時に取得していない場合
+	if location == "" && queryWord == "" {
+		query += `
+		JOIN (
+			SELECT locations.id AS l_id, locations.name AS location_name
+			FROM locations
+		) AS locations
+		ON locations.l_id = posts.location_id
+		`
+	}
+	// タグを絞り込み時に取得していない場合
+	if tag == "" && queryWord == "" {
+		query += `
+		LEFT JOIN (
+			SELECT post_id, tags.id AS tag_id, name AS tag_name
+			FROM post_tags
+			JOIN tags
+			ON post_tags.tag_id = tags.id
+		) AS post_tags
+			ON posts.id = post_tags.post_id
+		`
+	}
+	// 画像取得クエリ
+	query += `
+		LEFT JOIN post_images
+			ON post_images.post_id = posts.id`
+	// ソート
+	query += " ORDER BY " + orderColumn
+	if orderAsc {
+		query += " ASC"
+	} else {
+		query += " DESC"
+	}
+	// データ取得
+	models := []PostModel{}
+	err = r.db.Select(&models, query, params...)
+	if err != nil {
+		return nil, err
+	}
+	// マッピングして返す
+	return r.modelsToEntities(models)
 }
 
 // 投稿を一覧取得
@@ -75,6 +197,9 @@ func (r *MySqlPostRepository) FindAll(limit, page uint) ([]entity.Post, error) {
 
 // ソートのカラムに変換
 func (r *MySqlPostRepository) toOrderColumn(order string) (string, error) {
+	if order == "" {
+		return "id", nil
+	}
 	if order == "createdAt" {
 		return "id", nil
 	}

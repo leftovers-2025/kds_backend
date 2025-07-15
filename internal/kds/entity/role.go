@@ -25,3 +25,19 @@ func RoleFromString(role string) Role {
 func (r Role) String() string {
 	return string(r)
 }
+
+func (r Role) CanEdit(target Role) bool {
+	if r == ROLE_UNKNOWN || target == ROLE_UNKNOWN {
+		return false
+	}
+	if r == ROLE_STUDENT {
+		return false
+	}
+	if r == ROLE_TEACHER {
+		return target == ROLE_STUDENT
+	}
+	if r == ROLE_ROOT {
+		return target != ROLE_ROOT
+	}
+	return false
+}

@@ -40,6 +40,7 @@ func main() {
 
 	// user
 	auth.GET("/users/@me", handlerSets.UserHandler.Me)
+	auth.PATCH("/users/:userId/roles", handlerSets.UserHandler.EditUser)
 
 	// tag
 	api.GET("/tags", handlerSets.TagHandler.GetAll)

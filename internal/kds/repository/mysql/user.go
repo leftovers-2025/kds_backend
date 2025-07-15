@@ -79,6 +79,42 @@ func (r *MySqlUserRepository) Create(user *entity.User) error {
 	})
 }
 
+// 対象ユーザの情報を編集する
+func (r *MySqlUserRepository) EditUser(userId, targetUserId uuid.UUID, editFn func(user, targetUserId *entity.User) error) error {
+	err := RunInTx(r.db, func(tx *sqlx.Tx) error {
+		// ユーザ取得
+		user, err := getUserInTx(tx, userId)
+		if err != nil {
+			return err
+		}
+		// 編集対象ユーザー取得
+		targetUser, err := getUserInTx(tx, targetUserId)
+		if err != nil {
+			return err
+		}
+		// 編集
+		err = editFn(user, targetUser)
+		if err != nil {
+			return err
+		}
+		// ユーザー情報更新
+		query := `
+			UPDATE user_roles 
+			SET 
+				role = :role
+				updated_at = :updatedAt
+			WHERE user_id = :userId
+		`
+		_, err = tx.NamedExec(query, map[string]any{
+			"userId":    targetUserId[:],
+			"role":      targetUser.Role(),
+			"updatedAt": targetUser.UpdatedAt(),
+		})
+		return err
+	})
+	return err
+}
+
 // Idからユーザーを検索する
 func (r *MySqlUserRepository) FindById(id uuid.UUID) (*entity.User, error) {
 	sql := `

@@ -34,7 +34,8 @@ func InitHandlerSets() *HandlerSets {
 	authQueryService := service.NewAuthQueryService()
 	authHandler := handler.NewAuthHandler(authQueryService)
 	userQueryService := service.NewUserQueryService(userRepository)
-	userHandler := handler.NewUserHandler(userQueryService)
+	userEditCommandService := service.NewUserEditCommandService(userRepository)
+	userHandler := handler.NewUserHandler(userQueryService, userEditCommandService)
 	tagRepository := mysql.NewMySqlTagRepository(db)
 	tagCommandService := service.NewTagCommandService(tagRepository)
 	tagQueryService := service.NewTagQueryService(tagRepository)
@@ -67,7 +68,7 @@ var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMyS
 
 var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository, mysql.NewMySqlTagRepository, mysql.NewMySqlLocationRepository, mysql.NewMySqlPostRepository, s3.NewS3Repository)
 
-var serviceSet = wire.NewSet(service.NewUserCommandService, service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostQueryService, service.NewPostCommandService)
+var serviceSet = wire.NewSet(service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewUserCommandService, service.NewUserEditCommandService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostQueryService, service.NewPostCommandService)
 
 var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler, handler.NewTagHandler, handler.NewLocationHandler, handler.NewPostHandler)
 

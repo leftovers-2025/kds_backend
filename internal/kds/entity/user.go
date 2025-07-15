@@ -84,3 +84,12 @@ func (u *User) CreatedAt() time.Time {
 func (u *User) UpdatedAt() time.Time {
 	return u.updatedAt
 }
+
+func (u *User) UpdateRole(role Role) error {
+	if role == ROLE_UNKNOWN {
+		return ErrUserRoleUnknown
+	}
+	u.role = role
+	u.updatedAt = time.Now()
+	return nil
+}

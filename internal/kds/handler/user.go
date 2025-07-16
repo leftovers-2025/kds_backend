@@ -1,13 +1,20 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/leftovers-2025/kds_backend/internal/kds/common"
 	"github.com/leftovers-2025/kds_backend/internal/kds/service"
+)
+
+var (
+	ErrUserGetInvalidPage  = common.NewValidationError(errors.New("invalid page"))
+	ErrUserGetInvalidLimit = common.NewValidationError(errors.New("invalid limit"))
 )
 
 type UserHandler struct {
@@ -60,6 +67,45 @@ func (h *UserHandler) Me(ctx echo.Context) error {
 		CreatedAt: userOutput.CreatedAt,
 		UpdatedAt: userOutput.UpdatedAt,
 	})
+}
+
+// ユーザーを一覧取得する
+func (h *UserHandler) GetAll(ctx echo.Context) error {
+	// ユーザーID取得
+	userId, err := getUserIdFromCtx(ctx)
+	if err != nil {
+		return err
+	}
+	// パラメーター取得
+	limit, err := strconv.Atoi(ctx.QueryParam("limit"))
+	if err != nil {
+		return ErrPostGetInvalidLimit
+	}
+	page, err := strconv.Atoi(ctx.QueryParam("page"))
+	if err != nil {
+		return ErrPostGetInvalidPage
+	}
+	// ユーザーを一覧取得
+	outputList, err := h.userQueryService.GetUsers(userId, service.UserAllQueryInput{
+		Limit: uint(limit),
+		Page:  uint(page),
+	})
+	if err != nil {
+		return err
+	}
+	// レスポンスに変換
+	responseList := []UserResponse{}
+	for _, output := range outputList {
+		responseList = append(responseList, UserResponse{
+			Id:        output.Id,
+			Name:      output.Name,
+			Email:     output.Email,
+			Role:      output.Role,
+			CreatedAt: output.CreatedAt,
+			UpdatedAt: output.UpdatedAt,
+		})
+	}
+	return ctx.JSON(http.StatusOK, &responseList)
 }
 
 type UserEditRequest struct {

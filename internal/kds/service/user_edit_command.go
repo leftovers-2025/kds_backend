@@ -45,7 +45,7 @@ func (u *UserEditCommandService) EditRole(userId uuid.UUID, input UserEditRoleCo
 	err := u.userRepository.EditUser(userId, input.TargetUserId, func(user, targetUser *entity.User) error {
 		// 付与可能な権限か確認
 		if !user.Role().CanEdit(newRole) {
-			return ErrUserEditInvalidRole
+			return ErrUserEditNoPermission
 		}
 		// 対象ユーザーに対して編集できるか確認
 		if !user.Role().CanEdit(targetUser.Role()) {

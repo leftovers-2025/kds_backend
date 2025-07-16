@@ -9,5 +9,6 @@ type UserRepository interface {
 	Create(*entity.User) error
 	FindById(uuid.UUID) (*entity.User, error)
 	FindByGoogleId(string) (*entity.User, error)
+	FindAll(userId uuid.UUID, limit, page uint) ([]entity.User, error)
 	EditUser(userId, targetUserId uuid.UUID, editFn func(user, targetUser *entity.User) error) error
 }

@@ -32,11 +32,12 @@ var repositorySet = wire.NewSet(
 )
 
 var serviceSet = wire.NewSet(
-	service.NewUserCommandService,
 	service.NewGoogleCommandService,
 	service.NewAuthQueryService,
 	service.NewAuthCommandService,
 	service.NewUserQueryService,
+	service.NewUserCommandService,
+	service.NewUserEditCommandService,
 	service.NewTagQueryService,
 	service.NewTagCommandService,
 	service.NewLocationQueryService,

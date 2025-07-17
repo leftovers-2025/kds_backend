@@ -3,7 +3,6 @@ package entity
 import (
 	"errors"
 	"net/mail"
-	"strings"
 )
 
 const (
@@ -21,9 +20,9 @@ func NewEmail(email string) (Email, error) {
 	if _, err := mail.ParseAddress(email); err != nil {
 		return "", ErrInvalidEmail
 	}
-	if !strings.HasSuffix(email, EMAIL_SUFIX) {
-		return "", ErrEmailInvalidDomain
-	}
+	// if !strings.HasSuffix(email, EMAIL_SUFIX) {
+	// 	return "", ErrEmailInvalidDomain
+	// }
 	return Email(email), nil
 }
 

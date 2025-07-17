@@ -13,11 +13,13 @@ const (
 )
 
 var (
+	ErrUserIdRequired        = errors.New("User 'id' is required")
 	ErrUserNameRequired      = errors.New("User 'name' is required")
 	ErrUserGoogleIdRequired  = errors.New("User 'googleId' is required")
 	ErrUserRoleUnknown       = errors.New("User 'role' is unknown")
 	ErrInvalidUserNameLength = errors.New("invalid User 'name' length")
 	ErrUserTimeZero          = errors.New("the time related User is zero")
+	ErrUserInvalidPermission = errors.New("user invalid permission")
 )
 
 type User struct {
@@ -31,6 +33,9 @@ type User struct {
 }
 
 func NewUser(id uuid.UUID, name, googleId string, email Email, role Role, createdAt, updatedAt time.Time) (*User, error) {
+	if id == uuid.Nil {
+		return nil, ErrUserIdRequired
+	}
 	if name == "" {
 		return nil, ErrUserNameRequired
 	}
@@ -83,4 +88,32 @@ func (u *User) CreatedAt() time.Time {
 
 func (u *User) UpdatedAt() time.Time {
 	return u.updatedAt
+}
+
+func (u *User) UpdateRole(role Role) error {
+	if role == ROLE_UNKNOWN {
+		return ErrUserRoleUnknown
+	}
+	u.role = role
+	u.updatedAt = time.Now()
+	return nil
+}
+
+func (u *User) IsRoot() bool {
+	return u.Role() == ROLE_ROOT
+}
+
+func (u *User) IsTeacher() bool {
+	return u.Role() == ROLE_TEACHER
+}
+
+func (u *User) IsStudent() bool {
+	return u.Role() == ROLE_STUDENT
+}
+
+func (u *User) CanSeeUsers() error {
+	if u.role == ROLE_TEACHER || u.role == ROLE_ROOT {
+		return nil
+	}
+	return ErrUserInvalidPermission
 }

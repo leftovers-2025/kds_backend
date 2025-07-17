@@ -30,7 +30,7 @@ func NewMySqlPostRepository(db *sqlx.DB, s3Repository *s3.S3Repository) port.Pos
 
 // 投稿を新規作成
 func (r *MySqlPostRepository) Create(userId, locationId uuid.UUID, tagIds []uuid.UUID, createFn func(*entity.User, *entity.Location, []entity.Tag) (*entity.Post, error)) error {
-	return RunInTx(r.db, func(tx *sqlx.Tx) error {
+	return runInTx(r.db, func(tx *sqlx.Tx) error {
 		// ユーザー取得
 		user, err := getUserInTx(tx, userId)
 		if err != nil {

@@ -3,8 +3,8 @@ package event
 type EventType string
 
 const (
-	EVENT_UNKNOWN      EventType = "event:unknown"
-	EVENT_IMAGE_UPLOAD EventType = "event:images:upload"
+	EVENT_UNKNOWN    EventType = "event:unknown"
+	EVENT_GRANT_ROOT EventType = "event:grant:root"
 )
 
 type Event interface {

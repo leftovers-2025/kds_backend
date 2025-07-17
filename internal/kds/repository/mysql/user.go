@@ -36,7 +36,7 @@ type UserAndGoogleIdAndRoleModel struct {
 
 // ユーザーを新規作成する
 func (r *MySqlUserRepository) Create(user *entity.User) error {
-	return RunInTx(r.db, func(tx *sqlx.Tx) error {
+	return runInTx(r.db, func(tx *sqlx.Tx) error {
 		// ユーザー挿入
 		sql := `
 			INSERT INTO users(id, name, email, created_at, updated_at)
@@ -77,6 +77,88 @@ func (r *MySqlUserRepository) Create(user *entity.User) error {
 		})
 		return err
 	})
+}
+
+// 対象ユーザの情報を編集する
+func (r *MySqlUserRepository) UpdateTwoUsers(userId, userId2 uuid.UUID, updateFn func(user1, user2 *entity.User) error) error {
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
+		// ユーザ取得
+		user, err := getUserInTx(tx, userId)
+		if err != nil {
+			return err
+		}
+		// 編集対象ユーザー取得
+		user2, err := getUserInTx(tx, userId2)
+		if err != nil {
+			return err
+		}
+		// 更新
+		err = updateFn(user, user2)
+		if err != nil {
+			return err
+		}
+		// ユーザーロール情報更新
+		query := `
+			UPDATE roles
+			SET 
+				role = :role,
+				updated_at = :updatedAt
+			WHERE 
+				user_id = :userId
+		`
+		_, err = tx.NamedExec(query, map[string]any{
+			"userId":    userId[:],
+			"role":      user.Role().String(),
+			"updatedAt": user.UpdatedAt(),
+		})
+		if err != nil {
+			return err
+		}
+		_, err = tx.NamedExec(query, map[string]any{
+			"userId":    userId2[:],
+			"role":      user2.Role().String(),
+			"updatedAt": user2.UpdatedAt(),
+		})
+		return err
+	})
+	return err
+}
+
+// 対象ユーザの情報を編集する
+func (r *MySqlUserRepository) EditUser(userId, targetUserId uuid.UUID, editFn func(user, targetUserId *entity.User) error) error {
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
+		// ユーザ取得
+		user, err := getUserInTx(tx, userId)
+		if err != nil {
+			return err
+		}
+		// 編集対象ユーザー取得
+		targetUser, err := getUserInTx(tx, targetUserId)
+		if err != nil {
+			return err
+		}
+		// 編集
+		err = editFn(user, targetUser)
+		if err != nil {
+			return err
+		}
+		// ユーザーロール情報更新
+		query := `
+			UPDATE roles
+			SET 
+				role = :role,
+				updated_at = :updatedAt
+			WHERE 
+				user_id = :userId
+		`
+		_, err = tx.NamedExec(query, map[string]any{
+			"userId":    targetUserId[:],
+			"role":      targetUser.Role().String(),
+			"updatedAt": targetUser.UpdatedAt(),
+		})
+		return err
+	})
+	return err
 }
 
 // Idからユーザーを検索する
@@ -145,6 +227,51 @@ func (r *MySqlUserRepository) FindByGoogleId(googleId string) (*entity.User, err
 	return modelToUser(&model)
 }
 
+// ユーザーを一覧取得
+func (r *MySqlUserRepository) FindAll(userId uuid.UUID, limit, page uint) ([]entity.User, error) {
+	users := []entity.User{}
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
+		models := []UserAndGoogleIdAndRoleModel{}
+		sql := `
+			SELECT 
+				users.id, users.name, users.email, users.created_at, users.updated_at, google_ids.google_id, roles.role
+			FROM users
+				JOIN google_ids
+					ON users.id = google_ids.user_id
+				JOIN roles
+					ON users.id = roles.user_id
+			ORDER BY id ASC
+			LIMIT ? OFFSET ?
+		`
+		// クエリ実行ユーザー取得
+		user, err := getUserInTx(tx, userId)
+		if err != nil {
+			return err
+		}
+		// 閲覧可能か確認
+		err = user.CanSeeUsers()
+		if err != nil {
+			return err
+		}
+		// 一覧取得
+		err = tx.Select(&models, sql, limit, (page-1)*limit)
+		if err != nil {
+			return err
+		}
+		// ユーザーにマッピング
+		for _, model := range models {
+			user, err := modelToUser(&model)
+			if err != nil {
+				return err
+			}
+			users = append(users, *user)
+		}
+		return nil
+	})
+	return users, err
+}
+
+// トランザクションでユーザーを取得
 func getUserInTx(tx *sqlx.Tx, userId uuid.UUID) (*entity.User, error) {
 	query := `
 		SELECT 

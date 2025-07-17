@@ -17,3 +17,6 @@ func NewEventWorker(client *redis.Client) *EventWorker {
 
 func (w *EventWorker) processImageUpload() {
 }
+
+func (w *EventWorker) grantRoot() {
+}

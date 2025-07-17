@@ -4,7 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func RunInTx(db *sqlx.DB, txFn func(tx *sqlx.Tx) error) error {
+func runInTx(db *sqlx.DB, txFn func(tx *sqlx.Tx) error) error {
 	// トランザクション開始
 	tx, err := db.Beginx()
 	if err != nil {

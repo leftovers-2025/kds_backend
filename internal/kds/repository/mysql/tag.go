@@ -24,7 +24,7 @@ type TagModel struct {
 
 // タグを新規作成
 func (r *MySqlTagRepository) Create(userId uuid.UUID, createFn func(user *entity.User) (*entity.Tag, error)) error {
-	err := RunInTx(r.db, func(tx *sqlx.Tx) error {
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
 		// ユーザー作成
 		user, err := getUserInTx(tx, userId)
 		if err != nil {

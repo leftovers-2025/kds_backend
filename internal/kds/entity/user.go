@@ -99,6 +99,18 @@ func (u *User) UpdateRole(role Role) error {
 	return nil
 }
 
+func (u *User) IsRoot() bool {
+	return u.Role() == ROLE_ROOT
+}
+
+func (u *User) IsTeacher() bool {
+	return u.Role() == ROLE_TEACHER
+}
+
+func (u *User) IsStudent() bool {
+	return u.Role() == ROLE_STUDENT
+}
+
 func (u *User) CanSeeUsers() error {
 	if u.role == ROLE_TEACHER || u.role == ROLE_ROOT {
 		return nil

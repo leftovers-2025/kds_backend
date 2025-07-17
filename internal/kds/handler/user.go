@@ -139,3 +139,25 @@ func (h *UserHandler) EditUser(ctx echo.Context) error {
 	}
 	return ctx.NoContent(http.StatusNoContent)
 }
+
+// ルートを譲渡
+func (h *UserHandler) TransferRoot(ctx echo.Context) error {
+	// ユーザーId取得
+	userId, err := getUserIdFromCtx(ctx)
+	if err != nil {
+		return err
+	}
+	// 編集対象ユーザーId取得
+	targetUserId, err := uuid.Parse(ctx.Param("userId"))
+	if err != nil {
+		return err
+	}
+	// ルート譲渡
+	err = h.userEditCmdService.TransferRoot(userId, service.UserTranferRootCommandInput{
+		TargetUserId: targetUserId,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.NoContent(http.StatusNoContent)
+}

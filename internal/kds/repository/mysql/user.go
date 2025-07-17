@@ -36,7 +36,7 @@ type UserAndGoogleIdAndRoleModel struct {
 
 // ユーザーを新規作成する
 func (r *MySqlUserRepository) Create(user *entity.User) error {
-	return RunInTx(r.db, func(tx *sqlx.Tx) error {
+	return runInTx(r.db, func(tx *sqlx.Tx) error {
 		// ユーザー挿入
 		sql := `
 			INSERT INTO users(id, name, email, created_at, updated_at)
@@ -80,8 +80,53 @@ func (r *MySqlUserRepository) Create(user *entity.User) error {
 }
 
 // 対象ユーザの情報を編集する
+func (r *MySqlUserRepository) UpdateTwoUsers(userId, userId2 uuid.UUID, updateFn func(user1, user2 *entity.User) error) error {
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
+		// ユーザ取得
+		user, err := getUserInTx(tx, userId)
+		if err != nil {
+			return err
+		}
+		// 編集対象ユーザー取得
+		user2, err := getUserInTx(tx, userId2)
+		if err != nil {
+			return err
+		}
+		// 更新
+		err = updateFn(user, user2)
+		if err != nil {
+			return err
+		}
+		// ユーザーロール情報更新
+		query := `
+			UPDATE roles
+			SET 
+				role = :role,
+				updated_at = :updatedAt
+			WHERE 
+				user_id = :userId
+		`
+		_, err = tx.NamedExec(query, map[string]any{
+			"userId":    userId[:],
+			"role":      user.Role().String(),
+			"updatedAt": user.UpdatedAt(),
+		})
+		if err != nil {
+			return err
+		}
+		_, err = tx.NamedExec(query, map[string]any{
+			"userId":    userId2[:],
+			"role":      user2.Role().String(),
+			"updatedAt": user2.UpdatedAt(),
+		})
+		return err
+	})
+	return err
+}
+
+// 対象ユーザの情報を編集する
 func (r *MySqlUserRepository) EditUser(userId, targetUserId uuid.UUID, editFn func(user, targetUserId *entity.User) error) error {
-	err := RunInTx(r.db, func(tx *sqlx.Tx) error {
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
 		// ユーザ取得
 		user, err := getUserInTx(tx, userId)
 		if err != nil {
@@ -185,7 +230,7 @@ func (r *MySqlUserRepository) FindByGoogleId(googleId string) (*entity.User, err
 // ユーザーを一覧取得
 func (r *MySqlUserRepository) FindAll(userId uuid.UUID, limit, page uint) ([]entity.User, error) {
 	users := []entity.User{}
-	err := RunInTx(r.db, func(tx *sqlx.Tx) error {
+	err := runInTx(r.db, func(tx *sqlx.Tx) error {
 		models := []UserAndGoogleIdAndRoleModel{}
 		sql := `
 			SELECT 

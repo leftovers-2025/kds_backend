@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	ErrUserEditNoPermission = common.NewValidationError(errors.New("permission error"))
-	ErrUserEditInvalidRole  = common.NewValidationError(errors.New("invalid role"))
+	ErrUserEditNoPermission      = common.NewValidationError(errors.New("permission error"))
+	ErrUserEditInvalidRole       = common.NewValidationError(errors.New("invalid role"))
+	ErrUserEditInvalidTargetRole = common.NewValidationError(errors.New("target user`s role is invalid"))
+	ErrUserEditInvalidUsers      = errors.New("invalid users")
 )
 
 type UserEditCommandService struct {
@@ -34,6 +36,10 @@ type UserEditRoleCommandInput struct {
 	Role         string
 }
 
+type UserTranferRootCommandInput struct {
+	TargetUserId uuid.UUID
+}
+
 // 対象ユーザーのロールを編集する
 func (u *UserEditCommandService) EditRole(userId uuid.UUID, input UserEditRoleCommandInput) error {
 	// ロール取得
@@ -54,6 +60,20 @@ func (u *UserEditCommandService) EditRole(userId uuid.UUID, input UserEditRoleCo
 		// 権限更新
 		err := targetUser.UpdateRole(newRole)
 		return err
+	})
+	return err
+}
+
+// ルート権限を譲渡する
+func (u *UserEditCommandService) TransferRoot(userId uuid.UUID, input UserTranferRootCommandInput) error {
+	err := u.userRepository.UpdateTwoUsers(userId, input.TargetUserId, func(user1, user2 *entity.User) error {
+		// 権限確認
+		if !user1.IsRoot() || !user2.IsTeacher() {
+			return ErrUserEditNoPermission
+		}
+		user1.UpdateRole(entity.ROLE_TEACHER)
+		user2.UpdateRole(entity.ROLE_ROOT)
+		return nil
 	})
 	return err
 }

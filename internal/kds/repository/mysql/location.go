@@ -24,7 +24,7 @@ type LocationModel struct {
 
 // ロケーションを新規作成
 func (r *MySqlLocationRepository) Create(userId uuid.UUID, createFn func(*entity.User) (*entity.Location, error)) error {
-	return RunInTx(r.db, func(tx *sqlx.Tx) error {
+	return runInTx(r.db, func(tx *sqlx.Tx) error {
 		// ユーザー取得
 		user, err := getUserInTx(tx, userId)
 		if err != nil {

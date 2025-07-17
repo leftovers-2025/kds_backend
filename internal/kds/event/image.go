@@ -78,5 +78,5 @@ func (e *ImageUploadEvent) Event() (any, error) {
 }
 
 func (e *ImageUploadEvent) Type() EventType {
-	return EVENT_IMAGE_UPLOAD
+	return EVENT_UNKNOWN
 }

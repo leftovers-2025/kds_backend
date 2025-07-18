@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"time"
 
@@ -18,17 +19,23 @@ var (
 )
 
 type PostCommandService struct {
-	postRepository port.PostRepository
+	postRepository         port.PostRepository
+	notificationCmdService *NotificationCommandService
 }
 
 func NewPostCommandService(
 	postRepository port.PostRepository,
+	notificationCmdService *NotificationCommandService,
 ) *PostCommandService {
 	if postRepository == nil {
 		panic("nil PostRepository")
 	}
+	if notificationCmdService == nil {
+		panic("nil NotificationCommandService")
+	}
 	return &PostCommandService{
-		postRepository: postRepository,
+		postRepository:         postRepository,
+		notificationCmdService: notificationCmdService,
 	}
 }
 
@@ -41,6 +48,7 @@ type PostCreateCommandInput struct {
 
 // 投稿を新規作成する
 func (s *PostCommandService) CreatePost(userId uuid.UUID, input PostCreateCommandInput) error {
+	post := entity.Post{}
 	// リポジトリ保存
 	err := s.postRepository.Create(
 		userId,
@@ -89,5 +97,22 @@ func (s *PostCommandService) CreatePost(userId uuid.UUID, input PostCreateComman
 			}
 			return post, nil
 		})
+	if err != nil {
+		return err
+	}
+	go func() {
+		tagIds := []uuid.UUID{}
+		for _, tag := range post.Tags() {
+			tagIds = append(tagIds, tag.Id())
+		}
+		err := s.notificationCmdService.Notify(NotifyCommandInput{
+			PostId:     post.Id(),
+			LocationId: post.Location().Id(),
+			TagIds:     tagIds,
+		})
+		if err != nil {
+			fmt.Println("notify error: " + err.Error())
+		}
+	}()
 	return err
 }

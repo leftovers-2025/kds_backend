@@ -8,4 +8,5 @@ import (
 type LocationRepository interface {
 	Create(userId uuid.UUID, createFn func(*entity.User) (*entity.Location, error)) error
 	FindAll() ([]entity.Location, error)
+	FindByIds([]uuid.UUID) ([]entity.Location, error)
 }

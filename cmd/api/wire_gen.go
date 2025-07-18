@@ -11,6 +11,7 @@ import (
 	"github.com/leftovers-2025/kds_backend/internal/kds/datasource"
 	"github.com/leftovers-2025/kds_backend/internal/kds/handler"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/api"
+	"github.com/leftovers-2025/kds_backend/internal/kds/repository/email"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/mysql"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/redis"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/s3"
@@ -47,37 +48,44 @@ func InitHandlerSets() *HandlerSets {
 	minioClient := datasource.GetMinIOClient()
 	s3Repository := s3.NewS3Repository(minioClient)
 	postRepository := mysql.NewMySqlPostRepository(db, s3Repository)
-	postCommandService := service.NewPostCommandService(postRepository)
+	emailAuth := email.EmailFromEnv()
+	emailRepository := email.NewEmailRepository(emailAuth)
+	notificationRepository := mysql.NewNotificationRepository(db)
+	notificationCommandService := service.NewNotificationCommandService(tagRepository, emailRepository, locationRepository, notificationRepository)
+	postCommandService := service.NewPostCommandService(postRepository, notificationCommandService)
 	postQueryService := service.NewPostQueryService(postRepository)
 	postHandler := handler.NewPostHandler(postCommandService, postQueryService)
+	notificationHandler := handler.NewNotificationHandler(notificationCommandService)
 	handlerSets := &HandlerSets{
-		GoogleHandler:   googleHandler,
-		ErrorHandler:    errorHandler,
-		AuthHandler:     authHandler,
-		UserHandler:     userHandler,
-		TagHandler:      tagHandler,
-		LocationHandler: locationHandler,
-		PostHandler:     postHandler,
+		GoogleHandler:       googleHandler,
+		ErrorHandler:        errorHandler,
+		AuthHandler:         authHandler,
+		UserHandler:         userHandler,
+		TagHandler:          tagHandler,
+		LocationHandler:     locationHandler,
+		PostHandler:         postHandler,
+		NotificationHandler: notificationHandler,
 	}
 	return handlerSets
 }
 
 // wire.go:
 
-var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMySqlConnection, datasource.GetRedisClient, datasource.GetMinIOClient)
+var datasourceSet = wire.NewSet(datasource.NewGoogleApiClient, datasource.GetMySqlConnection, datasource.GetRedisClient, datasource.GetMinIOClient, email.EmailFromEnv)
 
-var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository, mysql.NewMySqlTagRepository, mysql.NewMySqlLocationRepository, mysql.NewMySqlPostRepository, s3.NewS3Repository)
+var repositorySet = wire.NewSet(api.NewApiGoogleRepository, mysql.NewMySqlUserRepository, redis.NewRedisTokenRepository, mysql.NewMySqlTagRepository, mysql.NewMySqlLocationRepository, mysql.NewMySqlPostRepository, mysql.NewNotificationRepository, s3.NewS3Repository, email.NewEmailRepository)
 
-var serviceSet = wire.NewSet(service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewUserCommandService, service.NewUserEditCommandService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostQueryService, service.NewPostCommandService)
+var serviceSet = wire.NewSet(service.NewGoogleCommandService, service.NewAuthQueryService, service.NewAuthCommandService, service.NewUserQueryService, service.NewUserCommandService, service.NewUserEditCommandService, service.NewTagQueryService, service.NewTagCommandService, service.NewLocationQueryService, service.NewLocationCommandService, service.NewPostQueryService, service.NewPostCommandService, service.NewNotificationCommandService)
 
-var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler, handler.NewTagHandler, handler.NewLocationHandler, handler.NewPostHandler)
+var handlerSet = wire.NewSet(handler.NewGoogleHandler, handler.NewErrorHandler, handler.NewUserHandler, handler.NewAuthHandler, handler.NewTagHandler, handler.NewLocationHandler, handler.NewPostHandler, handler.NewNotificationHandler)
 
 type HandlerSets struct {
-	GoogleHandler   *handler.GoogleHandler
-	ErrorHandler    *handler.ErrorHandler
-	AuthHandler     *handler.AuthHandler
-	UserHandler     *handler.UserHandler
-	TagHandler      *handler.TagHandler
-	LocationHandler *handler.LocationHandler
-	PostHandler     *handler.PostHandler
+	GoogleHandler       *handler.GoogleHandler
+	ErrorHandler        *handler.ErrorHandler
+	AuthHandler         *handler.AuthHandler
+	UserHandler         *handler.UserHandler
+	TagHandler          *handler.TagHandler
+	LocationHandler     *handler.LocationHandler
+	PostHandler         *handler.PostHandler
+	NotificationHandler *handler.NotificationHandler
 }

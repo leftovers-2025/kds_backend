@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/leftovers-2025/kds_backend/internal/kds/common"
@@ -60,6 +61,7 @@ func (s *NotificationCommandService) Notify(input NotifyCommandInput) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("notify target users: %d", len(users))
 	err = s.emailRepository.SendAll(users, "類似する落とし物が見つかりました", "http://localhost:8630/posts/"+input.PostId.String())
 	return err
 }

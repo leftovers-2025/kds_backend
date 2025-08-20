@@ -19,9 +19,9 @@ func NewNotificationRepository(db *sqlx.DB) port.NotificationRepository {
 
 // 通知対象ユーザーを一覧取得
 func (r *MySqlNotificationRepository) FindNotifyUsers(locationId uuid.UUID, tagIds []uuid.UUID) ([]entity.User, error) {
-	sql := `
+	query := `
 		SELECT 
-			users.id, users.name, users.email, users.created_at, users.updated_at
+			users.id, users.name, users.email, users.created_at, users.updated_at, google_ids.google_id, roles.role
 		FROM 
 			users
 		JOIN notifications
@@ -35,14 +35,21 @@ func (r *MySqlNotificationRepository) FindNotifyUsers(locationId uuid.UUID, tagI
 		JOIN roles
 			ON roles.user_id = users.id
 		WHERE
-			 location_notifications.location_id = ? OR tag_notifications.tag_id IN (?)
+			location_notifications.location_id = ? 
 	`
-	tagIdBytesList := [][]byte{}
-	for _, tagId := range tagIds {
-		tagIdBytesList = append(tagIdBytesList, tagId[:])
+	var args []any
+	var err error
+	tagIdList := [][]byte{}
+	if len(tagIds) > 0 {
+		query += " OR tag_notifications.tag_id IN (?)"
+		for _, tagId := range tagIds {
+			tagIdList = append(tagIdList, tagId[:])
+		}
+		query, args, err = sqlx.In(query, locationId[:], tagIdList)
+	} else {
+		query, args, err = sqlx.In(query, locationId[:])
 	}
 	models := []UserAndGoogleIdAndRoleModel{}
-	query, args, err := sqlx.In(sql, tagIdBytesList, locationId[:])
 	if err != nil {
 		return nil, err
 	}

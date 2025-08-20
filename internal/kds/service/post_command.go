@@ -48,7 +48,7 @@ type PostCreateCommandInput struct {
 
 // 投稿を新規作成する
 func (s *PostCommandService) CreatePost(userId uuid.UUID, input PostCreateCommandInput) error {
-	post := entity.Post{}
+	post := &entity.Post{}
 	// リポジトリ保存
 	err := s.postRepository.Create(
 		userId,
@@ -82,7 +82,7 @@ func (s *PostCommandService) CreatePost(userId uuid.UUID, input PostCreateComman
 				return nil, err
 			}
 			// 投稿作成
-			post, err := entity.NewPost(
+			post, err = entity.NewPost(
 				id,
 				user.Id(),
 				*location,

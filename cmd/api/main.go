@@ -56,5 +56,8 @@ func main() {
 	api.GET("/posts", handlerSets.PostHandler.Get)
 	auth.POST("/posts", handlerSets.PostHandler.Create)
 
+	// notifications
+	auth.PUT("/notifications", handlerSets.NotificationHandler.SaveSettings)
+
 	e.Logger.Fatal(e.Start(":" + port))
 }

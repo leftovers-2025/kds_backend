@@ -51,7 +51,10 @@ func (h *AuthHandler) JwtAuthorization(next echo.HandlerFunc) echo.HandlerFunc {
 			AccessToken: token,
 		})
 		if err != nil {
-			return err
+			return ctx.JSON(http.StatusUnauthorized, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: err.Error(),
+			})
 		}
 		// idを設定
 		ctx.Set(AUTHORIZATION_USER_ID_CONTEXT_NAME, idOutput.UserId)

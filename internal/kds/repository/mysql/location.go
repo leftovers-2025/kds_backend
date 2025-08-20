@@ -79,6 +79,31 @@ func (r *MySqlLocationRepository) FindAll() ([]entity.Location, error) {
 	return locations, nil
 }
 
+func (r *MySqlLocationRepository) FindByIds(ids []uuid.UUID) ([]entity.Location, error) {
+	sql := `
+		SELECT 
+			id, name
+		FROM locations
+		WHERE 
+			id in (?)
+	`
+	locationIds := [][]byte{}
+	for _, id := range ids {
+		locationIds = append(locationIds, id[:])
+	}
+	query, args, err := sqlx.In(sql, locationIds)
+	if err != nil {
+		return nil, err
+	}
+	locations := []LocationModel{}
+	// クエリ発行
+	err = r.db.Select(&locations, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return locationModelsToEntities(locations)
+}
+
 // トランザクションでロケーションを取得
 func getLocationInTx(tx *sqlx.Tx, locationid uuid.UUID) (*entity.Location, error) {
 	query := `
@@ -102,4 +127,21 @@ func getLocationInTx(tx *sqlx.Tx, locationid uuid.UUID) (*entity.Location, error
 		return nil, err
 	}
 	return location, nil
+}
+
+// タグモデルのリストをエンティティに変換
+func locationModelsToEntities(locationModels []LocationModel) ([]entity.Location, error) {
+	locations := []entity.Location{}
+	for _, model := range locationModels {
+		id, err := uuid.FromBytes(model.Id)
+		if err != nil {
+			return nil, err
+		}
+		location, err := entity.NewLocation(id, model.Name)
+		if err != nil {
+			return nil, err
+		}
+		locations = append(locations, *location)
+	}
+	return locations, nil
 }

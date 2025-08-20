@@ -8,4 +8,5 @@ import (
 type TagRepository interface {
 	Create(userId uuid.UUID, createFn func(*entity.User) (*entity.Tag, error)) error
 	FindAll() ([]entity.Tag, error)
+	FindByIds([]uuid.UUID) ([]entity.Tag, error)
 }

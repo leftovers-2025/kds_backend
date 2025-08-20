@@ -66,6 +66,31 @@ func (r *MySqlTagRepository) FindAll() ([]entity.Tag, error) {
 	return tagModelsToEntities(tags)
 }
 
+func (r *MySqlTagRepository) FindByIds(ids []uuid.UUID) ([]entity.Tag, error) {
+	sql := `
+		SELECT 
+			id, name
+		FROM tags
+		WHERE 
+			id in (?)
+	`
+	tagIds := [][]byte{}
+	for _, id := range ids {
+		tagIds = append(tagIds, id[:])
+	}
+	query, args, err := sqlx.In(sql, tagIds)
+	if err != nil {
+		return nil, err
+	}
+	tags := []TagModel{}
+	// クエリ発行
+	err = r.db.Select(&tags, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return tagModelsToEntities(tags)
+}
+
 // トランザクションでタグを一覧取得
 func getTagsInTx(tx *sqlx.Tx, tagIds []uuid.UUID) ([]entity.Tag, error) {
 	sql := `

@@ -8,6 +8,7 @@ import (
 	"github.com/leftovers-2025/kds_backend/internal/kds/datasource"
 	"github.com/leftovers-2025/kds_backend/internal/kds/handler"
 	apiRepo "github.com/leftovers-2025/kds_backend/internal/kds/repository/api"
+	emailRepo "github.com/leftovers-2025/kds_backend/internal/kds/repository/email"
 	mysqlRepo "github.com/leftovers-2025/kds_backend/internal/kds/repository/mysql"
 	redisRepo "github.com/leftovers-2025/kds_backend/internal/kds/repository/redis"
 	s3Repo "github.com/leftovers-2025/kds_backend/internal/kds/repository/s3"
@@ -19,6 +20,7 @@ var datasourceSet = wire.NewSet(
 	datasource.GetMySqlConnection,
 	datasource.GetRedisClient,
 	datasource.GetMinIOClient,
+	emailRepo.EmailFromEnv,
 )
 
 var repositorySet = wire.NewSet(
@@ -28,7 +30,9 @@ var repositorySet = wire.NewSet(
 	mysqlRepo.NewMySqlTagRepository,
 	mysqlRepo.NewMySqlLocationRepository,
 	mysqlRepo.NewMySqlPostRepository,
+	mysqlRepo.NewNotificationRepository,
 	s3Repo.NewS3Repository,
+	emailRepo.NewEmailRepository,
 )
 
 var serviceSet = wire.NewSet(
@@ -44,6 +48,7 @@ var serviceSet = wire.NewSet(
 	service.NewLocationCommandService,
 	service.NewPostQueryService,
 	service.NewPostCommandService,
+	service.NewNotificationCommandService,
 )
 
 var handlerSet = wire.NewSet(
@@ -54,16 +59,18 @@ var handlerSet = wire.NewSet(
 	handler.NewTagHandler,
 	handler.NewLocationHandler,
 	handler.NewPostHandler,
+	handler.NewNotificationHandler,
 )
 
 type HandlerSets struct {
-	GoogleHandler   *handler.GoogleHandler
-	ErrorHandler    *handler.ErrorHandler
-	AuthHandler     *handler.AuthHandler
-	UserHandler     *handler.UserHandler
-	TagHandler      *handler.TagHandler
-	LocationHandler *handler.LocationHandler
-	PostHandler     *handler.PostHandler
+	GoogleHandler       *handler.GoogleHandler
+	ErrorHandler        *handler.ErrorHandler
+	AuthHandler         *handler.AuthHandler
+	UserHandler         *handler.UserHandler
+	TagHandler          *handler.TagHandler
+	LocationHandler     *handler.LocationHandler
+	PostHandler         *handler.PostHandler
+	NotificationHandler *handler.NotificationHandler
 }
 
 func InitHandlerSets() *HandlerSets {

@@ -34,7 +34,7 @@ jobs:
 
       - name: Configure Swagger UI
         run: |
-          sed -i 's|https://petstore.swagger.io/v2/swagger.json|./swagger.json|' swagger-ui/index.html
+          sed -i 's|https://petstore.swagger.io/v2/swagger.json|./swagger.json|' swagger-ui/swagger-initializer.js
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

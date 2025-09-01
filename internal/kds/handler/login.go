@@ -30,6 +30,17 @@ type GoogleLoginResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+// Redirect godoc
+//
+//	@Summary		Google OAuth redirect
+//	@Description	Handle Google OAuth redirect
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	query		string	true	"Authorization code"
+//	@Success		200		{object}	GoogleLoginResponse
+//	@Router			/oauth/google/redirect [get]
+//
 // Google OAuth認証時リダイレクト先
 func (h *GoogleHandler) Redirect(ctx echo.Context) error {
 	if !ctx.QueryParams().Has("code") {

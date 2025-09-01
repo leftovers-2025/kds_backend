@@ -1,3 +1,11 @@
+// @title						KDS Backend API
+// @version					1.0
+// @description				This is a sample server for KDS backend.
+// @host						localhost:8630
+// @BasePath					/api
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
 package main
 
 import (
@@ -6,6 +14,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/leftovers-2025/kds_backend/docs"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 const (
@@ -58,6 +68,9 @@ func main() {
 
 	// notifications
 	auth.PUT("/notifications", handlerSets.NotificationHandler.SaveSettings)
+
+	// swagger
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.Logger.Fatal(e.Start(":" + port))
 }

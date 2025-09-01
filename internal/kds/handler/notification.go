@@ -36,6 +36,18 @@ type NotificationSettingsRequest struct {
 	LocationIds []string `json:"locationIds"`
 }
 
+// SaveSettings godoc
+//
+//	@Summary		Save notification settings
+//	@Description	Save notification settings for the user
+//	@Tags			notifications
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	NotificationSettingsRequest	true	"Notification settings request"
+//	@Success		204
+//	@Router			/notifications [put]
+//
 // 通知設定を保存する
 func (h *NotificationHandler) SaveSettings(ctx echo.Context) error {
 	// ユーザーId取得

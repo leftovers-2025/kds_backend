@@ -34,6 +34,16 @@ type TagResponse struct {
 	Name string `json:"name"`
 }
 
+// GetAll godoc
+//
+//	@Summary		Get all tags
+//	@Description	Get a list of all tags
+//	@Tags			tags
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}	TagResponse
+//	@Router			/tags [get]
+//
 // タグを一覧取得
 func (h *TagHandler) GetAll(ctx echo.Context) error {
 	tags, err := h.tagQueryService.FindAllTags()
@@ -55,6 +65,18 @@ type TagCreateRequest struct {
 	Name string `json:"name"`
 }
 
+// Create godoc
+//
+//	@Summary		Create a new tag
+//	@Description	Create a new tag
+//	@Tags			tags
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	TagCreateRequest	true	"Tag create request"
+//	@Success		204
+//	@Router			/tags [post]
+//
 // タグを新規作成
 func (h *TagHandler) Create(ctx echo.Context) error {
 	// ユーザーID取得

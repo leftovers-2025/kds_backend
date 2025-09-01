@@ -35,6 +35,16 @@ type LocationResponse struct {
 	Name string `json:"name"`
 }
 
+// GetAll godoc
+//
+//	@Summary		Get all locations
+//	@Description	Get a list of all locations
+//	@Tags			locations
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}	LocationResponse
+//	@Router			/locations [get]
+//
 // タグを一覧取得
 func (h *LocationHandler) GetAll(ctx echo.Context) error {
 	locations, err := h.locationQueryService.GetAllLocations()
@@ -56,6 +66,18 @@ type LocationCreateRequest struct {
 	Name string `json:"name"`
 }
 
+// Create godoc
+//
+//	@Summary		Create a new location
+//	@Description	Create a new location
+//	@Tags			locations
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			request	body	LocationCreateRequest	true	"Location create request"
+//	@Success		204
+//	@Router			/locations [post]
+//
 // ロケーションを新規作成
 func (h *LocationHandler) Create(ctx echo.Context) error {
 	// ユーザーID取得

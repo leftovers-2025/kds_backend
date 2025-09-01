@@ -1,0 +1,38 @@
+name: Deploy Swagger to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Download Swagger UI
+        run: |
+          wget https://github.com/swagger-api/swagger-ui/archive/refs/tags/v5.10.3.zip
+          unzip v5.10.3.zip
+          mv swagger-ui-5.10.3/dist swagger-ui
+
+      - name: Copy Swagger JSON
+        run: cp docs/swagger.json swagger-ui/
+
+      - name: Configure Swagger UI
+        run: |
+          sed -i 's|https://petstore.swagger.io/v2/swagger.json|./swagger.json|' swagger-ui/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./swagger-ui

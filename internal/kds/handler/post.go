@@ -62,6 +62,23 @@ type PostResponseLocationItem struct {
 	Name string `json:"name"`
 }
 
+// Get godoc
+//
+//	@Summary		Get posts
+//	@Description	Get a list of posts with optional filters
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit		query	int		true	"Limit"
+//	@Param			page		query	int		true	"Page"
+//	@Param			query		query	string	false	"Query word"
+//	@Param			tag			query	string	false	"Tag"
+//	@Param			location	query	string	false	"Location"
+//	@Param			order		query	string	false	"Order"
+//	@Param			orderAsc	query	bool	false	"Order ascending"
+//	@Success		200			{array}	PostResponse
+//	@Router			/posts [get]
+//
 // 投稿を取得
 func (h *PostHandler) Get(ctx echo.Context) error {
 	// パラメーター取得
@@ -124,6 +141,23 @@ func (h *PostHandler) Get(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, &responseList)
 }
 
+// Create godoc
+//
+//	@Summary		Create a new post
+//	@Description	Create a new post
+//	@Tags			posts
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			description	formData	string	true	"Description"
+//	@Param			locationId	formData	string	true	"Location ID"
+//	@Param			tagIds		formData	string	true	"Tag IDs (comma separated)"
+//	@Param			image1		formData	file	false	"Image 1"
+//	@Param			image2		formData	file	false	"Image 2"
+//	@Param			image3		formData	file	false	"Image 3"
+//	@Success		204
+//	@Router			/posts [post]
+//
 // 投稿を新規作成
 func (h *PostHandler) Create(ctx echo.Context) error {
 	userId, err := getUserIdFromCtx(ctx)

@@ -1,0 +1,426 @@
+basePath: /api
+definitions:
+  handler.GoogleLoginResponse:
+    properties:
+      accessToken:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  handler.LocationCreateRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  handler.LocationResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.NotificationSettingsRequest:
+    properties:
+      enabled:
+        type: boolean
+      locationIds:
+        items:
+          type: string
+        type: array
+      tagIds:
+        items:
+          type: string
+        type: array
+    type: object
+  handler.PostResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      location:
+        $ref: '#/definitions/handler.PostResponseLocationItem'
+      tags:
+        items:
+          $ref: '#/definitions/handler.PostResponseTagItem'
+        type: array
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  handler.PostResponseLocationItem:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.PostResponseTagItem:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.TagCreateRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  handler.TagResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.UserEditRequest:
+    properties:
+      role:
+        type: string
+    type: object
+  handler.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: localhost:8630
+info:
+  contact: {}
+  description: This is a sample server for KDS backend.
+  title: KDS Backend API
+  version: "1.0"
+paths:
+  /locations:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all locations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.LocationResponse'
+            type: array
+      summary: Get all locations
+      tags:
+      - locations
+    post:
+      consumes:
+      - application/json
+      description: Create a new location
+      parameters:
+      - description: Location create request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LocationCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Create a new location
+      tags:
+      - locations
+  /notifications:
+    put:
+      consumes:
+      - application/json
+      description: Save notification settings for the user
+      parameters:
+      - description: Notification settings request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.NotificationSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Save notification settings
+      tags:
+      - notifications
+  /oauth/google/redirect:
+    get:
+      consumes:
+      - application/json
+      description: Handle Google OAuth redirect
+      parameters:
+      - description: Authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GoogleLoginResponse'
+      summary: Google OAuth redirect
+      tags:
+      - auth
+  /posts:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of posts with optional filters
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Page
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Query word
+        in: query
+        name: query
+        type: string
+      - description: Tag
+        in: query
+        name: tag
+        type: string
+      - description: Location
+        in: query
+        name: location
+        type: string
+      - description: Order
+        in: query
+        name: order
+        type: string
+      - description: Order ascending
+        in: query
+        name: orderAsc
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.PostResponse'
+            type: array
+      summary: Get posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new post
+      parameters:
+      - description: Description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Location ID
+        in: formData
+        name: locationId
+        required: true
+        type: string
+      - description: Tag IDs (comma separated)
+        in: formData
+        name: tagIds
+        required: true
+        type: string
+      - description: Image 1
+        in: formData
+        name: image1
+        type: file
+      - description: Image 2
+        in: formData
+        name: image2
+        type: file
+      - description: Image 3
+        in: formData
+        name: image3
+        type: file
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Create a new post
+      tags:
+      - posts
+  /tags:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all tags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.TagResponse'
+            type: array
+      summary: Get all tags
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      description: Create a new tag
+      parameters:
+      - description: Tag create request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.TagCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Create a new tag
+      tags:
+      - tags
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all users
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.UserResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - users
+  /users/{userId}/roles:
+    patch:
+      consumes:
+      - application/json
+      description: Edit the role of a user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: User edit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UserEditRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Edit user role
+      tags:
+      - users
+  /users/{userId}/root:
+    post:
+      consumes:
+      - application/json
+      description: Transfer root to another user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Transfer root
+      tags:
+      - users
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Get information about the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user info
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

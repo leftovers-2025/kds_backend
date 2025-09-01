@@ -47,6 +47,17 @@ type UserResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// Me godoc
+//
+//	@Summary		Get current user info
+//	@Description	Get information about the current user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	UserResponse
+//	@Router			/users/me [get]
+//
 // 自身のユーザー情報を取得する
 func (h *UserHandler) Me(ctx echo.Context) error {
 	// ユーザーID取得
@@ -69,6 +80,19 @@ func (h *UserHandler) Me(ctx echo.Context) error {
 	})
 }
 
+// GetAll godoc
+//
+//	@Summary		Get all users
+//	@Description	Get a list of all users
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			limit	query	int	true	"Limit"
+//	@Param			page	query	int	true	"Page"
+//	@Success		200		{array}	UserResponse
+//	@Router			/users [get]
+//
 // ユーザーを一覧取得する
 func (h *UserHandler) GetAll(ctx echo.Context) error {
 	// ユーザーID取得
@@ -112,6 +136,19 @@ type UserEditRequest struct {
 	Role string `json:"role"`
 }
 
+// EditUser godoc
+//
+//	@Summary		Edit user role
+//	@Description	Edit the role of a user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userId	path	string			true	"User ID"
+//	@Param			request	body	UserEditRequest	true	"User edit request"
+//	@Success		204
+//	@Router			/users/{userId}/roles [patch]
+//
 // ユーザーを編集
 func (h *UserHandler) EditUser(ctx echo.Context) error {
 	// ユーザーId取得
@@ -140,6 +177,18 @@ func (h *UserHandler) EditUser(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusNoContent)
 }
 
+// TransferRoot godoc
+//
+//	@Summary		Transfer root
+//	@Description	Transfer root to another user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userId	path	string	true	"User ID"
+//	@Success		204
+//	@Router			/users/{userId}/root [post]
+//
 // ルートを譲渡
 func (h *UserHandler) TransferRoot(ctx echo.Context) error {
 	// ユーザーId取得

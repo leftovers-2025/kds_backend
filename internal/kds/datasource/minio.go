@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/minio/minio-go/v7"
@@ -36,14 +37,26 @@ func MigrateMinIO(client *minio.Client) error {
 	if err != nil {
 		return err
 	}
-	if exists {
-		return nil
+	if !exists {
+		err = client.MakeBucket(context.Background(), imageBucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			return err
+		}
 	}
-	err = client.MakeBucket(context.Background(), imageBucketName, minio.MakeBucketOptions{})
-	if err != nil {
-		return err
-	}
-	return nil
+	policy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Principal": {"AWS": "*"},
+				"Action": ["s3:GetObject"],
+				"Resource": ["arn:aws:s3:::%s/*"]
+			}
+		]
+	}`
+	policy = fmt.Sprintf(policy, imageBucketName)
+	err = client.SetBucketPolicy(context.Background(), imageBucketName, policy)
+	return err
 }
 
 func getMinioEndpoint() string {

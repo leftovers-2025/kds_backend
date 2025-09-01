@@ -23,10 +23,10 @@ func GetMinIOClient() *minio.Client {
 	if err != nil {
 		panic("failed to get minio client.\n" + err.Error())
 	}
-	// err = MigrateMinIO(client)
-	// if err != nil {
-	// 	panic("MinIO Migration Error: " + err.Error())
-	// }
+	err = MigrateMinIO(client)
+	if err != nil {
+		panic("MinIO Migration Error: " + err.Error())
+	}
 	return client
 }
 

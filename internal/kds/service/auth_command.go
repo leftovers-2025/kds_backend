@@ -80,6 +80,7 @@ type TokenRefreshCommandInput struct {
 
 type TokenRefreshCommandOutput struct {
 	AccessToken string
+	ExpiresIn   time.Time
 }
 
 // トークンをリフレッシュ
@@ -111,5 +112,6 @@ func (s *AuthCommandService) RefreshToken(input TokenRefreshCommandInput) (*Toke
 	}
 	return &TokenRefreshCommandOutput{
 		AccessToken: accessToken.Token(),
+		ExpiresIn:   accessToken.ExpiresIn(),
 	}, nil
 }

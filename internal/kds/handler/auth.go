@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -20,16 +21,48 @@ var (
 )
 
 type AuthHandler struct {
+	authCmdService   *service.AuthCommandService
 	authQueryService *service.AuthQueryService
 }
 
-func NewAuthHandler(authQueryService *service.AuthQueryService) *AuthHandler {
+func NewAuthHandler(authCmdService *service.AuthCommandService, authQueryService *service.AuthQueryService) *AuthHandler {
+	if authCmdService == nil {
+		panic("nil AuthCommandService")
+	}
 	if authQueryService == nil {
 		panic("nil AuthQueryService")
 	}
 	return &AuthHandler{
+		authCmdService:   authCmdService,
 		authQueryService: authQueryService,
 	}
+}
+
+type TokenRefreshRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type TokenRefreshResponse struct {
+	AccessToken string    `json:"accessToken"`
+	ExpiresIn   time.Time `json:"expiresIn"`
+}
+
+// トークンをリフレッシュする
+func (h *AuthHandler) RefreshToken(ctx echo.Context) error {
+	request := TokenRefreshRequest{}
+	if err := ctx.Bind(&request); err != nil {
+		return err
+	}
+	output, err := h.authCmdService.RefreshToken(service.TokenRefreshCommandInput{
+		RefreshToken: request.RefreshToken,
+	})
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(http.StatusOK, TokenRefreshResponse{
+		AccessToken: output.AccessToken,
+		ExpiresIn:   output.ExpiresIn,
+	})
 }
 
 // JWT認証を行うミドルウェア

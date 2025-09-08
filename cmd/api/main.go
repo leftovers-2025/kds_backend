@@ -49,6 +49,9 @@ func main() {
 	// error handling
 	e.HTTPErrorHandler = handlerSets.ErrorHandler.HandleError
 
+	// token
+	e.POST("/refreshToken", handlerSets.AuthHandler.RefreshToken)
+
 	// google oauth
 	e.GET("/oauth/google/redirect", handlerSets.GoogleHandler.Redirect)
 

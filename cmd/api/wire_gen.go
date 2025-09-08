@@ -16,6 +16,8 @@ import (
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/redis"
 	"github.com/leftovers-2025/kds_backend/internal/kds/repository/s3"
 	"github.com/leftovers-2025/kds_backend/internal/kds/service"
+
+	_ "github.com/leftovers-2025/kds_backend/docs"
 )
 
 // Injectors from wire.go:
@@ -33,7 +35,7 @@ func InitHandlerSets() *HandlerSets {
 	googleHandler := handler.NewGoogleHandler(googleCommandService)
 	errorHandler := handler.NewErrorHandler()
 	authQueryService := service.NewAuthQueryService()
-	authHandler := handler.NewAuthHandler(authQueryService)
+	authHandler := handler.NewAuthHandler(authCommandService, authQueryService)
 	userQueryService := service.NewUserQueryService(userRepository)
 	userEditCommandService := service.NewUserEditCommandService(userRepository)
 	userHandler := handler.NewUserHandler(userQueryService, userEditCommandService)

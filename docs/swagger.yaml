@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  handler.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
   handler.GoogleLoginResponse:
     properties:
       accessToken:
@@ -85,6 +92,18 @@ definitions:
       id:
         type: string
       name:
+        type: string
+    type: object
+  handler.TokenRefreshRequest:
+    properties:
+      refreshToken:
+        type: string
+    type: object
+  handler.TokenRefreshResponse:
+    properties:
+      accessToken:
+        type: string
+      expiresIn:
         type: string
     type: object
   handler.UserEditRequest:
@@ -285,6 +304,40 @@ paths:
       summary: Create a new post
       tags:
       - posts
+  /refreshToken:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the access token using the provided refresh token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: refreshToken
+        required: true
+        schema:
+          $ref: '#/definitions/handler.TokenRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TokenRefreshResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Refresh access token
+      tags:
+      - auth
   /tags:
     get:
       consumes:

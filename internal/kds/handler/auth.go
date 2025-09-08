@@ -47,7 +47,17 @@ type TokenRefreshResponse struct {
 	ExpiresIn   time.Time `json:"expiresIn"`
 }
 
-// トークンをリフレッシュする
+// @Summary		Refresh access token
+// @Description	Refresh the access token using the provided refresh token
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			refreshToken	body		TokenRefreshRequest	true	"Refresh Token"
+// @Success		200				{object}	TokenRefreshResponse
+// @Failure		400				{object}	ErrorResponse
+// @Failure		401				{object}	ErrorResponse
+// @Failure		500				{object}	ErrorResponse
+// @Router			/refreshToken [post]
 func (h *AuthHandler) RefreshToken(ctx echo.Context) error {
 	request := TokenRefreshRequest{}
 	if err := ctx.Bind(&request); err != nil {

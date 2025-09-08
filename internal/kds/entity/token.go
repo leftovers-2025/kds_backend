@@ -104,6 +104,10 @@ func (t *AccessToken) Sub() uuid.UUID {
 	return t.sub
 }
 
+func (t *AccessToken) ExpiresIn() time.Time {
+	return t.expireIn
+}
+
 func (t *AccessToken) Token() string {
 	return t.token
 }
